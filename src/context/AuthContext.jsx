@@ -45,6 +45,26 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  // -------------------------- New Code --------------------------
+  const adminLogin = async (username, password) => {
+    try {
+      const res = await axios.post('/api/users/admin-login', { username, password });
+      const { token, role } = res.data; // Assume the API returns a `role`
+      
+      // Store token and set header
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  
+      // Fetch and set the user data
+      const response = await axios.get('/api/users/user');
+      setUser({ ...response.data, role: "admin" }); // Add the role to the user data
+    } catch (error) {
+      console.error("Login error:", error);
+      throw new Error("Invalid credentials or role");
+    }
+  };
+  // ----------------------------------------------------
+
   const logout = () => {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
@@ -52,7 +72,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, adminLogin }}>
       {children}
     </AuthContext.Provider>
   );
